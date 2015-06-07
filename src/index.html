@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+  <head>
+    <title><%= json.project.title %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <%= t.include("partials/_adHead.html") %>
+  </head>
+  <body ng-app="discipline-app">
+
+    <responsive-child>
+      <section class="interactive" ng-controller="discipline-controller" >
+        <nav>
+          Table mode:
+          <a class="mode" href="javascript:;" ng-click="mode = 'numbers'">Numerical</a>
+          <a class="mode" href="javascript:;" ng-click="mode = 'relative'">Relative</a>
+          <div ng-if="mode == 'relative'">
+            Compared to: 
+            <select ng-model="$parent.comparison">
+              <option value="white">White</option>
+              <option value="black">Black</option>
+              <option value="asian">Asian</option>
+              <option value="hispanic">Hispanic</option>
+              <option value="multi">Multiracial</option>
+              <option value="li">Low-income</option>
+            </select>
+          </div>
+          Search: <input ng-model="search" placeholder="District, county">
+        </nav>
+        <table class="discipline {{mode}} {{comparison}}">
+          <thead>
+            <tr>
+              <th class="county column"> County
+              <th class="district column"> District
+              <th class="pop column"> Population
+              <th class="white column"> White
+              <th class="black column"> Black
+              <th class="asian column"> Asian
+              <th class="hispanic column"> Hispanic
+              <th class="multi column"> Multiracial
+              <th class="li column"> Low-income
+          <tbody>
+            <tr ng-repeat="row in data | filter:search track by row.code">
+              <td class="county column">{{row.county}}
+              <td class="district column">{{row.district}}
+              <td class="pop column">{{row.population | number}}
+              <td class="white column">{{getValue(row, "white")}}
+              <td class="black column">{{getValue(row, "black")}}
+              <td class="asian column">{{getValue(row, "asian")}}
+              <td class="hispanic column">{{getValue(row, "hispanic")}}
+              <td class="multi column">{{getValue(row, "multi")}}
+              <td class="li column">{{getValue(row, "li")}}
+        </table>
+      </section>
+    </responsive-child>
+
+    <script>
+window.discipline = <%= JSON.stringify(csv.discipline) %>;
+    </script>
+
+    <script src="app.js"></script>
+    <% if (json.project.production) { %>
+    <%= !json.project.embedded ? t.include("partials/_adFoot.html") : "" %>
+    <%= t.include("partials/_workHere.html") %>
+    <% } %>
+  </body>
+</html>
