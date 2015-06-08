@@ -8,9 +8,12 @@
     <%= t.include("partials/_adHead.html") %>
   </head>
   <body ng-app="discipline-app">
+    <style>
+[ng-cloak] { display: none }
+    </style>
 
     <responsive-child>
-      <section class="interactive" ng-controller="discipline-controller" >
+      <section class="interactive" ng-controller="discipline-controller" ng-cloak>
         <nav>
           Table mode:
           <a class="mode" href="javascript:;" ng-click="mode = 'numbers'">Numerical</a>
@@ -45,12 +48,9 @@
               <td class="county column">{{row.county}}
               <td class="district column">{{row.district}}
               <td class="pop column">{{row.population | number}}
-              <td class="white column">{{getValue(row, "white")}}
-              <td class="black column">{{getValue(row, "black")}}
-              <td class="asian column">{{getValue(row, "asian")}}
-              <td class="hispanic column">{{getValue(row, "hispanic")}}
-              <td class="multi column">{{getValue(row, "multi")}}
-              <td class="li column">{{getValue(row, "li")}}
+              <td ng-repeat="column in ['white', 'black', 'asian', 'hispanic', 'multi', 'li']"
+                class="{{column}} column">
+                {{getValue(row, column)}}
         </table>
       </section>
     </responsive-child>
