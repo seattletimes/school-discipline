@@ -16,7 +16,8 @@
       <section class="interactive" ng-controller="discipline-controller" ng-cloak>
         <nav>
           Table mode:
-          <a class="mode" href="javascript:;" ng-click="mode = 'numbers'">Numerical</a>
+          <a class="mode" href="javascript:;" ng-click="mode = 'numbers'">Numerical</a> |
+          <a class="mode" href="javascript:;" ng-click="mode = 'percentage'">Percentage</a> |
           <a class="mode" href="javascript:;" ng-click="mode = 'relative'">Relative</a>
           <div ng-if="mode == 'relative'">
             Compared to: 
@@ -29,7 +30,9 @@
               <option value="li">Low-income</option>
             </select>
           </div>
-          Search: <input ng-model="search" placeholder="District, county">
+          <div>
+            Search: <input ng-model="search" placeholder="District, county">
+          </div>
         </nav>
         <table class="discipline {{mode}} {{comparison}}">
           <thead>
@@ -37,6 +40,7 @@
               <th class="county column"> County
               <th class="district column"> District
               <th class="pop column"> Population
+              <th class="disciplined column"> Suspended
               <th class="white column"> White
               <th class="black column"> Black
               <th class="asian column"> Asian
@@ -48,13 +52,31 @@
               <td class="county column">{{row.county}}
               <td class="district column">{{row.district}}
               <td class="pop column">{{row.population | number}}
+              <td class="disciplined column">
+                <div ng-if="mode!='percentage'">
+                  {{row.disciplined | number}}
+                </div>
+                <div ng-if="mode=='percentage'">
+                  {{row.disciplined / row.population * 100 | number:1}}%
+                </div>
               <td ng-repeat="column in ['white', 'black', 'asian', 'hispanic', 'multi', 'li']"
-                class="{{column}} column">
-                {{getValue(row, column)}}
+                class="{{column}} column"
+                ng-class="{
+                  high: mode != 'numbers' ? getRelative(row, column) > 2 : getRate(row, column) > 10
+                }">
+                <div ng-if="mode=='numbers'">
+                  {{getDiscipline(row, column)}}
+                </div>
+                <div ng-if="mode=='percentage'">
+                  {{getRate(row, column)}}
+                </div>
+                <div ng-if="mode=='relative'">
+                  {{getRelative(row, column)}}
+                </div>
         </table>
       </section>
     </responsive-child>
-
+ 
     <script>
 window.discipline = <%= JSON.stringify(csv.discipline) %>;
     </script>

@@ -4,7 +4,7 @@
 
 require("component-responsive-frame/child");
 
-var angular = require("angular");
+var angular = require("angular/angular.min");
 
 var app = angular.module("discipline-app", []);
 
@@ -12,7 +12,7 @@ app.filter("na", function() {
   return function(value) {
     return value === false ? "N/A" : value;
   }
-})
+});
 
 app.controller("discipline-controller", ["$scope", "$filter", function($scope, $filter) {
 
@@ -38,25 +38,24 @@ app.controller("discipline-controller", ["$scope", "$filter", function($scope, $
   $scope.comparison = "white";
   $scope.data = all;
 
-  $scope.getValue = function(item, column) {
-    var mode = $scope.mode;
-    var cPop = item[`${column}_pop`];
-    var disciplined = item[`${column}_d`];
-    if (!disciplined) return "N/A";
-    var rate = disciplined / cPop * 100;
+  $scope.getRate = function(row, column) {
+    var value = row[`${column}_rate`];
+    if (!value) return "";
+    return `${ngNumber(value, 1)}%`;
+  };
 
-    if (mode == "numbers") {
-      return `${ngNumber(disciplined)} (${rate.toFixed(1)}%)`;
-    } else if (mode == "relative") {
-      var comparison = $scope.comparison;
-      var comparePop = item[`${comparison}_pop`];
-      var compareDisc = item[`${comparison}_d`];
-      if (!compareDisc || !comparePop) return "N/A";
+  $scope.getDiscipline = function(row, column) {
+    var value = row[`${column}_d`];
+    if (!value) return "";
+    return value;
+  };
 
-      var compareRate = compareDisc / comparePop * 100;
-      var ratio = rate / compareRate;
-      return `${ratio.toFixed(1)}x`;
-    }
+  $scope.getRelative = function(item, demo) {
+    var rate = item[`${demo}_rate`];
+    var compared = item[`${$scope.comparison}_rate`];
+    if (!rate || !compared) return "";
+    var ratio = rate / compared;
+    return ratio.toFixed(1);
   };
 
 }]);
