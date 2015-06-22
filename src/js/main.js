@@ -4,7 +4,8 @@
 
 require("component-responsive-frame/child");
 
-var angular = require("angular/angular.min");
+require("angular");
+var $ = require("jquery");
 
 var app = angular.module("discipline-app", []);
 
@@ -31,6 +32,7 @@ app.controller("discipline-controller", ["$scope", "$filter", function($scope, $
       var rate = item[`${demo}_d`] / item[`${demo}_pop`];
       item[`${demo}_rate`] = (rate * 100) || false;
     });
+    item.d_rate = item.disciplined / item.population;
   });
 
   $scope.search = "";
@@ -41,7 +43,7 @@ app.controller("discipline-controller", ["$scope", "$filter", function($scope, $
   $scope.getRate = function(row, column) {
     var value = row[`${column}_rate`];
     if (!value) return "";
-    return `${ngNumber(value, 1)}%`;
+    return value;
   };
 
   $scope.getDiscipline = function(row, column) {
@@ -59,3 +61,37 @@ app.controller("discipline-controller", ["$scope", "$filter", function($scope, $
   };
 
 }]);
+
+app.directive("debounceModel", function() {
+  var debounce = function(f, delay) {
+    var timeout = null;
+    return function() {
+      if (timeout) return;
+      setTimeout(function() {
+        timeout = null;
+        f();
+      }, delay || 200);
+    };
+  }
+
+  return {
+    restrict: "A",
+    scope: {
+      "model": "=debounceModel"
+    },
+    link: function(scope, element, attrs) {
+      scope.$watch("model", function(now) {
+        if (now == current) return;
+        element.val(now);
+      });
+
+      scope.model = element.val();
+      var current = scope.model;
+
+      element.on("keyup", debounce(function() {
+        current = scope.model = element.val();
+        scope.$apply();
+      }));
+    }
+  }
+})

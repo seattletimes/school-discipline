@@ -31,7 +31,7 @@
             </select>
           </div>
           <div>
-            Search: <input ng-model="search" placeholder="District, county">
+            Search: <input debounce-model="search" placeholder="District, county">
           </div>
         </nav>
         <table class="discipline {{mode}} {{comparison}}">
@@ -53,26 +53,26 @@
               <td class="district column">{{row.district}}
               <td class="pop column">{{row.population | number}}
               <td class="disciplined column">
-                <div ng-if="mode!='percentage'">
-                  {{row.disciplined | number}}
+                <div>
+                  {{row.disciplined | number}} ({{row.d_rate * 100 | number:1}}%)
                 </div>
-                <div ng-if="mode=='percentage'">
-                  {{row.disciplined / row.population * 100 | number:1}}%
-                </div>
-              <td ng-repeat="column in ['white', 'black', 'asian', 'hispanic', 'multi', 'li']"
-                class="{{column}} column"
+              <% ["white", "black", "asian", "hispanic", "multi", "li"].forEach(function(column) { %>
+              <td
+                class="<%= column %> column"
                 ng-class="{
-                  high: mode != 'numbers' ? getRelative(row, column) > 2 : getRate(row, column) > 10
+                  high: mode != 'numbers' ? getRelative(row, '<%= column %>') > 2 : getRate(row, '<%= column %>') > 10
                 }">
-                <div ng-if="mode=='numbers'">
-                  {{getDiscipline(row, column)}}
+                <div ng-show="mode=='numbers'">
+                  {{getDiscipline(row, "<%= column %>") | number}}
                 </div>
-                <div ng-if="mode=='percentage'">
-                  {{getRate(row, column)}}
+                <div ng-show="mode=='percentage'">
+                  {{getRate(row, "<%= column %>") | number:1 }}%
                 </div>
-                <div ng-if="mode=='relative'">
-                  {{getRelative(row, column)}}
+                <div ng-show="mode=='relative'">
+                  {{getRelative(row, "<%= column %>")}}x
                 </div>
+              <% }); %>
+              
         </table>
       </section>
     </responsive-child>
