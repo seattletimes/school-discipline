@@ -21,17 +21,24 @@ app.directive("ratioChart", function() {
       canvas.width = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
 
-      //draw ratio circle
-      context.beginPath();
-      context.arc(canvas.width / 2, canvas.height / 2, radius * scope.ratio, 0, Math.PI * 2);
-      context.fillStyle = "red";
-      context.fill();
+      scope.$watch("ratio", function() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
+        var a = Math.PI * (radius * radius);
+        var r = Math.sqrt((a * scope.ratio) / Math.PI);
 
-      //draw standard circle
-      context.beginPath();
-      context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
-      context.strokeStyle = scope.ratio > 1 ? "white" : "#BBB";
-      context.stroke();
+        //draw ratio circle
+        context.beginPath();
+        context.arc(canvas.width / 2, canvas.height / 2, r, 0, Math.PI * 2);
+        context.fillStyle = "rgb(123, 90, 166)";
+        context.fill();
+
+        //draw standard circle
+        context.beginPath();
+        context.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
+        context.strokeStyle = scope.ratio > 1 ? "white" : "#BBB";
+        context.stroke();
+      });
     }
   }
 })

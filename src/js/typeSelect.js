@@ -36,6 +36,7 @@ app.directive("typeSelect", function() {
       });
       
       input.addEventListener("blur", function() {
+        console.log("blurring");
         setTimeout(() => element.removeClass("show-completion"), 100);
         if (!input.value) input.value = cachedValue;
       });
@@ -68,6 +69,7 @@ app.directive("typeSelect", function() {
       });
 
       scope.setValue = function(option) {
+        input.value = `${option.district} (${option.county})`;
         scope.model = option.code || "wa";
       }
     }

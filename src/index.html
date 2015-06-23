@@ -4,6 +4,18 @@ csv.discipline.sort(function(a, b) {
   if (b.district < a.district) return 1;
   return 0;
 });
+csv.discipline.forEach(function(district) {
+  for (var key in district) {
+    if (district[key] == "") {
+      district[key] = 0;
+    }
+  }
+  district.asian_pop += district.api_pop;
+  district.asian_d += district.api_d;
+  ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {
+    district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"] || 0;
+  });
+});
 grunt.data.counter = 0;
 %><!doctype html>
 <html>
@@ -21,55 +33,103 @@ grunt.data.counter = 0;
     </style>
 
     <responsive-child>
-      <h2>Different rates for different races</h2>
-      <section class="chatter">
-      </section>
-      <section class="interactive" ng-controller="discipline-controller" ng-cloak>
-        
-        In 
-          <type-select options="districts" model="district"></type-select>
-        schools, compared to
-          <select ng-model="baseline" class="pick-baseline">
-            <option ng-repeat="d in exclusive" value="{{d.data}}">{{d.label}}</option>
-          </select>
-        students, other groups are generally <span class="mutates">{{selectedIsHigher ? "less" : "more"}}</span> likely to have been suspended from school.
-
-        <div class="compare-row">
-          <div ng-repeat="demo in relativeRates" class="demographic">
-            <h3>{{demo.label}} students</h3>
-            <div class="relative-text" ng-if="getRelative(demo.data) > 0">
-              <ratio-chart ratio="getRelative(demo.data)"></ratio-chart>
-              Suspended or expelled
-              <div class="relative-rate" ng-class="{ high: getRelative(demo.data) > 2 }">
-                {{getRelative(demo.data) * 100 | number:1}}%
-              </div>
-              as much as {{baseLabel}} students
-            </div>
-            <div class="no-data" ng-if="getRelative(demo.data) == 0">
-              No data for this district
-            </div>
-          </div>
-        </div>
-
-        <p>
-          There are {{selected.population | number}} students in 
+      <main class="interactive">
+        <h2>Different rates for different races</h2>
+        <section class="chatter">
+        </section>
+        <section class="reactive-doc" ng-controller="discipline-controller" ng-cloak>
+          
+          Black, white, Asian and Hispanic students are disciplined at widely different rates. In 
             <type-select options="districts" model="district"></type-select>
-          schools. {{selected.disciplined | number}} were suspended in 201X ({{selected.disciplined / selected.population * 100 | number:1}}%). Totals within different demographics, however, may differ widely. Beyond the racial breakdown, special-needs students and those from low-income families, are suspended at rates that far surpass others.
+          schools, 
+          <span ng-if="relativeRates.length">
+              <select ng-model="$parent.baseline" class="pick-baseline">
+                <option ng-repeat="d in exclusive" value="{{d.data}}">{{d.label}}</option>
+              </select>
+            students were generally <span class="mutates">{{selectedIsHigher ? "more" : "less"}}</span> likely to have been suspended or expelled than those from other ethnic groups.
+          </span>
+          <span ng-if="relativeRates.length == 0">
+            the state has not released enough data to be sure about relative discipline rates.
+          </span>
 
-        <div class="compare-row">
-          <div ng-repeat="demo in demographics" class="demographic">
-            <h3>{{demo.label}}</h3>
-            <div class="rate-text">
-              <div class="rate">
-                {{getRate(demo.data) * 100 | number:1}}%
+          <div class="compare-row">
+            <div ng-repeat="demo in relativeRates" class="demographic">
+              <h3>{{demo.label}} students</h3>
+              <div class="relative-text" ng-if="getRelative(demo.data) > 0">
+                Suspended or expelled
+                <ratio-chart ratio="getRelative(demo.data)"></ratio-chart>
+                <div class="relative-rate" ng-class="{ high: getRelative(demo.data) > 2 }">
+                  {{getRelative(demo.data) * 100 | number:1}}%
+                </div>
+                as much as {{baseLabel}} students
               </div>
-              <b>{{selected[demo.data + "_d"] | number}}</b> suspensions/expulsions for
-              <b>{{selected[demo.data + "_pop"] | number}}</b> students
+              <div class="no-data" ng-if="getRelative(demo.data) == 0">
+                No data for this district
+              </div>
             </div>
           </div>
-        </div>
+          <div class="compare-key" ng-if="relativeRates.length">
+            <div><span class="focus spot"></span> Suspended or expelled</div>
+            <div><span class="base spot"></span> Baseline rate</div>
+          </div>
+          <div class="no-data" ng-if="relativeRates.length == 0">
+            No demographic data for this district
+          </div>
 
-      </section>
+          <p>
+            There are <span class="mutates">{{selected.population | number}}</span> students in 
+              <type-select options="districts" model="district"></type-select>
+            schools in the 2013-2014 school year. Of those, <span class="mutates">{{selected.disciplined | number}}</span> were suspended or expelled (<span class="mutates">{{selected.disciplined / selected.population * 100 | number:1}}%</span>). Beyond the racial breakdown, special-needs students and those from low-income families, are suspended at rates that far surpass others.
+
+          <div class="compare-row">
+            <div ng-repeat="demo in demographics" class="demographic">
+              <h3>{{demo.label}}</h3>
+              <div class="rate-text">
+                <div class="rate">
+                  {{getRate(demo.data) * 100 | number:1}}% <pie-chart percentage="getRate(demo.data)"></pie-chart>
+                </div>
+                <b>{{selected[demo.data + "_d"] | number}}</b> suspensions or expulsions, out of
+                <b>{{selected[demo.data + "_pop"] | number}}</b> {{demo.label}} students
+              </div>
+            </div>
+          </div>
+
+          <div class="table-note">
+            The table below shows the top districts by discipline rate for
+            <select ng-model="tableFilter">
+              <option ng-repeat="d in demographics" value="{{d.data}}">{{d.label}}</option>
+            </select> students.
+          </div>
+
+          <table class="top-table">
+            <thead>
+              <tr>
+                <th class="rank">
+                <th class="district">District
+                <th class="county">County
+                <th class="rate numeric">Rate
+                <th class="pop numeric">Students
+                <th class="disciplined numeric">Disciplined
+            <tbody>
+              <tr ng-repeat="row in tableData | limitTo:10">
+                <td class="rank">{{$index + 1}}
+                <td class="district">{{row.district}}
+                <td class="county">{{row.county}}
+                <td class="rate numeric">{{row[tableFilter + "_rate"] * 100 | number:1}}%
+                <td class="pop numeric">{{row[tableFilter + "_pop"]}}
+                <td class="disciplined numeric">{{row[tableFilter + "_d"]}}
+          </table>
+
+          <div class="source">
+            Source: Washington state Office of Superintendent of Public Instruction. If a group has fewer than xx students, the data was not provided. Native American students were not shown because their numbers are so small. Asian student data also includes Pacific Islanders.
+          </div>
+
+          <cite class="credit">
+            THOMAS WILBURN / THE SEATTLE TIMES
+          </cite>
+
+        </section>
+      </main>
     </responsive-child>
  
     <script>

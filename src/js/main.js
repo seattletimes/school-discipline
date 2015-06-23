@@ -9,11 +9,12 @@ var $ = require("jquery");
 var app = require("./application");
 require("./typeSelect");
 require("./ratioChart");
+require("./pie");
 
 var all = window.discipline;
 
 var demographics = [
-  { label: "White", data: "white" },
+  { label: "White", alt: "white", data: "white" },
   { label: "Black", data: "black" },
   { label: "Asian", data: "asian" },
   { label: "Hispanic", data: "hispanic" },
@@ -31,7 +32,7 @@ var total = {
   disciplined: 0,
 };
 demographics.forEach(d => {
-  labels[d.data] = d.label;
+  labels[d.data] = d.alt || d.label;
   total[`${d.data}_pop`] = 0;
   total[`${d.data}_d`] = 0;
 });
@@ -39,7 +40,7 @@ demographics.forEach(d => {
 all.forEach(function(row) {
   byCode[row.code] = row;
   for (var key in row) {
-    if (typeof total[key] == "number") total[key] += row[key]* 1;
+    if (typeof total[key] == "number") total[key] += row[key] * 1;
   }
 });
 byCode.wa = total;
@@ -61,12 +62,14 @@ var controller = function($scope, $filter) {
     var base = $scope.baseline;
     $scope.baseLabel = labels[base];
     $scope.relativeRates = $scope.exclusive.filter(d => d.data != base);
+    $scope.exclusive = demographics.filter(d => !d.exclude && district[`${d.data}_d`]);
 
     var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
-    var average = $scope.relativeRates.reduce(function(total, demo) {
-      return total + district[`${demo.data}_d`] / district[`${demo.data}_pop`];
-    }, 0) / (demographics.length - 1);
-    $scope.selectedIsHigher = baselineRate > average;
+    var count = $scope.relativeRates.reduce(function(total, demo) {
+      var rate = district[`${demo.data}_d`] / district[`${demo.data}_pop`];
+      return total + (rate > baselineRate ? 1 : 0);
+    }, 0);
+    $scope.selectedIsHigher = count < $scope.relativeRates.length / 2;
   });
 
   $scope.getRelative = function(demo) {
@@ -85,7 +88,15 @@ var controller = function($scope, $filter) {
     var rate = $scope.getRelative(demo);
     var d = Math.sqrt(rate / Math.PI);
     return d;
-  }
+  };
+
+  $scope.tableFilter = "white";
+
+  $scope.$watch("tableFilter", function() {
+    $scope.tableData = all.sort(function(a, b) {
+      return b[`${$scope.tableFilter}_rate`] - a[`${$scope.tableFilter}_rate`];
+    });
+  });
 
 };
 

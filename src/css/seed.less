@@ -12,10 +12,16 @@
 
 body {
   max-width: 620px;
+  margin: auto;
+}
+
+main.interactive {
+  padding: 4px;
 }
 
 .mutates {
-  border-bottom: 1px dotted black;
+  background: lighten(@df-goldenrod, 40%);
+  padding: 0 4px;
 }
 
 .pick-district {
@@ -23,13 +29,12 @@ body {
 }
 
 select {
-  border: 1px solid white;
+  border: none;
+  border-bottom: 1px dotted black;
   background: white;
-
-  &:hover {
-    border: 1px solid @df-middle-gray;
-    // background: @df-light-gray;
-  }
+  font-size: inherit;
+  font-family: @df-serif;
+  text-align: center;
 }
 
 .compare-row {
@@ -43,7 +48,11 @@ select {
     .flex(1);
     min-width: 25%;
     padding: 12px 12px;
-    font-size: 13px;
+    font-size: 15px;
+
+    @media @mobile {
+      min-width: 50%;
+    }
 
     h3 {
       margin: 0;
@@ -61,4 +70,58 @@ select {
       font-size: 28px;
     }
   }
+}
+
+.compare-key {
+  text-align: center;
+  .display-flex;
+  .justify-content(space-around);
+  .flex-wrap(wrap);
+  font-size: 14px;
+
+  .spot {
+    display: inline-block;
+    vertical-align: text-top;
+    width: 14px;
+    height: 14px;
+    border-radius: 100%;
+
+    &.focus {
+      background: @st-dark-purple;
+    }
+
+    &.base {
+      border: 1px solid #CCC;
+    }
+  }
+}
+
+.no-data {
+  text-align: center;
+  font-size: 28px;
+}
+
+.top-table {
+  font-family: @df-sans;
+  font-size: 13px;
+  width: 100%;
+
+  td, th {
+    text-align: left;
+    vertical-align: bottom;
+
+    &.numeric {
+      text-align: right;
+    }
+  }
+}
+
+.source {
+  font-size: 12px;
+}
+
+.credit {
+  font-size: 12px;
+  text-align: right;
+  display: block;
 }
