@@ -8,6 +8,7 @@ require("angular");
 var $ = require("jquery");
 var app = require("./application");
 require("./typeSelect");
+require("./ratioChart");
 
 var all = window.discipline;
 

@@ -3,9 +3,9 @@ var app = require("./application");
 app.directive("typeSelect", function() {
   return {
     template: `
-<input ng-model="selection">
+<input ng-model="selection" placeholder="Search by district or county">
 <div class="completion">
-  <a class="option" ng-click="model = 'wa'">Washington (statewide)</a>
+  <a class="default option" ng-click="model = 'wa'">Washington (statewide)</a>
   <hr>
   <div class="options">
     <a class="option" ng-repeat="option in filtered" ng-click="setValue(option)">
@@ -47,6 +47,10 @@ app.directive("typeSelect", function() {
         }
         var regex = new RegExp(input.value, "i");
         scope.filtered = scope.options.filter(d => d.district.match(regex) || d.county.match(regex));
+        if (e.keyCode == 13) {
+          input.blur();
+          scope.setValue(scope.filtered[0]);
+        }
         // scope.filtered = scope.filtered.slice(0, 10);
         scope.$apply();
       });

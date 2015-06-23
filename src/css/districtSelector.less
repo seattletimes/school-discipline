@@ -1,11 +1,12 @@
 type-select {
   position: relative;
-  font-family: @df-sans;
-  font-size: 13px;
 
   input {
     border: none;
     border-bottom: 1px dotted black;
+    font-family: @df-serif;
+    font-size: inherit;
+    text-align: center;
   }
 
   .completion {
@@ -18,6 +19,8 @@ type-select {
     padding: 4px;
     // max-width: 100%;
     width: 320px;
+    font-family: @df-sans;
+    font-size: 13px;
   }
 
   &.show-completion .completion {
@@ -26,11 +29,19 @@ type-select {
 
   .option {
     display: block;
-    background: @df-light-gray;
+    background: #EEE;
     color: @df-dark-gray;
     padding: 4px;
     margin-bottom: 4px;
     cursor: pointer;
+
+    &.default {
+      background: #EEE;
+    }
+
+    &:first-child:not(.default) {
+      background: @df-light-gray;
+    }
   }
 
   .options {

@@ -21,7 +21,7 @@ grunt.data.counter = 0;
     </style>
 
     <responsive-child>
-      <h2>An Uneven Playing Field</h2>
+      <h2>Different rates for different races</h2>
       <section class="chatter">
       </section>
       <section class="interactive" ng-controller="discipline-controller" ng-cloak>
@@ -36,27 +36,25 @@ grunt.data.counter = 0;
 
         <div class="compare-row">
           <div ng-repeat="demo in relativeRates" class="demographic">
-            <div class="circle-container">
-              <div class="ratio" ng-style="{
-                padding: getArea(demo.data) * 40 + 'px'
-              }"></div>
-              <div class="baseline"></div>
-            </div>
             <h3>{{demo.label}} students</h3>
-            <div class="relative-text">
+            <div class="relative-text" ng-if="getRelative(demo.data) > 0">
+              <ratio-chart ratio="getRelative(demo.data)"></ratio-chart>
               Suspended or expelled
               <div class="relative-rate" ng-class="{ high: getRelative(demo.data) > 2 }">
                 {{getRelative(demo.data) * 100 | number:1}}%
               </div>
               as much as {{baseLabel}} students
             </div>
+            <div class="no-data" ng-if="getRelative(demo.data) == 0">
+              No data for this district
+            </div>
           </div>
         </div>
 
         <p>
           There are {{selected.population | number}} students in 
-            
-          schools. {{selected.disciplined | number}} were suspended in 201X ({{selected.disciplined / selected.population * 100 | number:1}}%). Totals within different demographics, however, may differ widely.
+            <type-select options="districts" model="district"></type-select>
+          schools. {{selected.disciplined | number}} were suspended in 201X ({{selected.disciplined / selected.population * 100 | number:1}}%). Totals within different demographics, however, may differ widely. Beyond the racial breakdown, special-needs students and those from low-income families, are suspended at rates that far surpass others.
 
         <div class="compare-row">
           <div ng-repeat="demo in demographics" class="demographic">
