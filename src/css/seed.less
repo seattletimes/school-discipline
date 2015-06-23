@@ -6,22 +6,94 @@
 }
 
 @import "seattletimes";
+@import "flexbox";
+@import "districtSelector";
 
-table.discipline {
-  font-size: 14px;
-  font-family: @df-sans;
-  border-collapse: collapse;
+body {
+  max-width: 620px;
+}
 
-  .column {
-    text-align: right;
-    padding: 0px 4px;
+.mutates {
+  border-bottom: 1px dotted black;
+}
 
-    &.county, &.district {
-      text-align: left;
-    }
+.pick-district {
+  width: 150px;
+}
+
+select {
+  border: 1px solid white;
+  background: white;
+
+  &:hover {
+    border: 1px solid @df-middle-gray;
+    background: @df-light-gray;
+  }
+}
+
+.circle-container {
+  @diameter: 20px;
+  position: relative;
+  height: 100px;
+  width: 100px;
+  margin: auto;
+
+  .baseline {
+    position: absolute;
+    padding: @diameter;
+    border-radius: 100%;
+    background: fade(#DDD, 70%);
+    width: 0px;
+    height: 0px;
+    margin: auto auto;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
   }
 
-  .high {
-    background: #FBB;
+  .ratio {
+    border-radius: 100%;
+    background: red;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    height: 0px;
+    width: 0px;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+  }
+
+
+}
+
+.compare-row {
+  .display-flex;
+  .flex-wrap(wrap);
+  overflow: hidden;
+  text-align: center;
+  margin: 12px 0;
+
+  .demographic {
+    .flex(1);
+    min-width: 25%;
+    padding: 12px 12px;
+    font-size: 13px;
+
+    h3 {
+      margin: 0;
+    }
+
+    .relative-rate {
+      font-size: 28px;
+
+      &.high {
+        font-weight: bold;
+      }
+    }
+
+    .rate {
+      font-size: 28px;
+    }
   }
 }

@@ -1,10 +1,18 @@
-<!doctype html>
+<%
+csv.discipline.sort(function(a, b) {
+  if (a.district < b.district) return -1;
+  if (b.district < a.district) return 1;
+  return 0;
+});
+grunt.data.counter = 0;
+%><!doctype html>
 <html>
   <head>
     <title><%= json.project.title %></title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
     <%= t.include("partials/_adHead.html") %>
   </head>
   <body ng-app="discipline-app">
@@ -13,67 +21,56 @@
     </style>
 
     <responsive-child>
+      <h2>An Uneven Playing Field</h2>
+      <section class="chatter">
+      </section>
       <section class="interactive" ng-controller="discipline-controller" ng-cloak>
-        <nav>
-          Table mode:
-          <a class="mode" href="javascript:;" ng-click="mode = 'numbers'">Numerical</a> |
-          <a class="mode" href="javascript:;" ng-click="mode = 'percentage'">Percentage</a> |
-          <a class="mode" href="javascript:;" ng-click="mode = 'relative'">Relative</a>
-          <div ng-if="mode == 'relative'">
-            Compared to: 
-            <select ng-model="$parent.comparison">
-              <option value="white">White</option>
-              <option value="black">Black</option>
-              <option value="asian">Asian</option>
-              <option value="hispanic">Hispanic</option>
-              <option value="multi">Multiracial</option>
-              <option value="li">Low-income</option>
-            </select>
+        
+        In 
+          <type-select options="districts" model="district"></type-select>
+        schools, compared to
+          <select ng-model="baseline" class="pick-baseline">
+            <option ng-repeat="d in exclusive" value="{{d.data}}">{{d.label}}</option>
+          </select>
+        students, other groups are generally <span class="mutates">{{selectedIsHigher ? "less" : "more"}}</span> likely to have been suspended from school.
+
+        <div class="compare-row">
+          <div ng-repeat="demo in relativeRates" class="demographic">
+            <div class="circle-container">
+              <div class="ratio" ng-style="{
+                padding: getArea(demo.data) * 40 + 'px'
+              }"></div>
+              <div class="baseline"></div>
+            </div>
+            <h3>{{demo.label}} students</h3>
+            <div class="relative-text">
+              Suspended or expelled
+              <div class="relative-rate" ng-class="{ high: getRelative(demo.data) > 2 }">
+                {{getRelative(demo.data) * 100 | number:1}}%
+              </div>
+              as much as {{baseLabel}} students
+            </div>
           </div>
-          <div>
-            Search: <input debounce-model="search" placeholder="District, county">
+        </div>
+
+        <p>
+          There are {{selected.population | number}} students in 
+            
+          schools. {{selected.disciplined | number}} were suspended in 201X ({{selected.disciplined / selected.population * 100 | number:1}}%). Totals within different demographics, however, may differ widely.
+
+        <div class="compare-row">
+          <div ng-repeat="demo in demographics" class="demographic">
+            <h3>{{demo.label}}</h3>
+            <div class="rate-text">
+              <div class="rate">
+                {{getRate(demo.data) * 100 | number:1}}%
+              </div>
+              <b>{{selected[demo.data + "_d"] | number}}</b> suspensions/expulsions for
+              <b>{{selected[demo.data + "_pop"] | number}}</b> students
+            </div>
           </div>
-        </nav>
-        <table class="discipline {{mode}} {{comparison}}">
-          <thead>
-            <tr>
-              <th class="county column"> County
-              <th class="district column"> District
-              <th class="pop column"> Population
-              <th class="disciplined column"> Suspended
-              <th class="white column"> White
-              <th class="black column"> Black
-              <th class="asian column"> Asian
-              <th class="hispanic column"> Hispanic
-              <th class="multi column"> Multiracial
-              <th class="li column"> Low-income
-          <tbody>
-            <tr ng-repeat="row in data | filter:search track by row.code">
-              <td class="county column">{{row.county}}
-              <td class="district column">{{row.district}}
-              <td class="pop column">{{row.population | number}}
-              <td class="disciplined column">
-                <div>
-                  {{row.disciplined | number}} ({{row.d_rate * 100 | number:1}}%)
-                </div>
-              <% ["white", "black", "asian", "hispanic", "multi", "li"].forEach(function(column) { %>
-              <td
-                class="<%= column %> column"
-                ng-class="{
-                  high: mode != 'numbers' ? getRelative(row, '<%= column %>') > 2 : getRate(row, '<%= column %>') > 10
-                }">
-                <div ng-show="mode=='numbers'">
-                  {{getDiscipline(row, "<%= column %>") | number}}
-                </div>
-                <div ng-show="mode=='percentage'">
-                  {{getRate(row, "<%= column %>") | number:1 }}%
-                </div>
-                <div ng-show="mode=='relative'">
-                  {{getRelative(row, "<%= column %>")}}x
-                </div>
-              <% }); %>
-              
-        </table>
+        </div>
+
       </section>
     </responsive-child>
  

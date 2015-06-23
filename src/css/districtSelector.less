@@ -1,0 +1,45 @@
+type-select {
+  position: relative;
+  font-family: @df-sans;
+  font-size: 13px;
+
+  input {
+    border: none;
+    border-bottom: 1px dotted black;
+  }
+
+  .completion {
+    display: none;
+    position: absolute;
+    left: 0;
+    z-index: 9999;
+    background: white;
+    box-shadow: 4px 4px 16px rgba(0, 0, 0, .3);
+    padding: 4px;
+    // max-width: 100%;
+    width: 320px;
+  }
+
+  &.show-completion .completion {
+    display: block;
+  }
+
+  .option {
+    display: block;
+    background: @df-light-gray;
+    color: @df-dark-gray;
+    padding: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+  }
+
+  .options {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  hr {
+    width: 80%;
+    border: 1px solid @df-light-gray;
+  }
+}

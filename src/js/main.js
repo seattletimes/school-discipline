@@ -6,92 +6,88 @@ require("component-responsive-frame/child");
 
 require("angular");
 var $ = require("jquery");
+var app = require("./application");
+require("./typeSelect");
 
-var app = angular.module("discipline-app", []);
+var all = window.discipline;
 
-app.filter("na", function() {
-  return function(value) {
-    return value === false ? "N/A" : value;
-  }
+var demographics = [
+  { label: "White", data: "white" },
+  { label: "Black", data: "black" },
+  { label: "Asian", data: "asian" },
+  { label: "Hispanic", data: "hispanic" },
+  { label: "Multiracial", data: "multi" },
+  { label: "Special Education", data: "se", exclude: true },
+  { label: "Low-income", data: "li", exclude: true }
+];
+var labels = {};
+
+var byCode = {};
+var total = {
+  district: "Washington",
+  county: "statewide",
+  population: 0,
+  disciplined: 0,
+};
+demographics.forEach(d => {
+  labels[d.data] = d.label;
+  total[`${d.data}_pop`] = 0;
+  total[`${d.data}_d`] = 0;
 });
 
-app.controller("discipline-controller", ["$scope", "$filter", function($scope, $filter) {
+all.forEach(function(row) {
+  byCode[row.code] = row;
+  for (var key in row) {
+    if (typeof total[key] == "number") total[key] += row[key]* 1;
+  }
+});
+byCode.wa = total;
+
+var controller = function($scope, $filter) {
 
   var ngNumber = $filter("number");
 
-  var all = window.discipline.filter(function(row) {
-    if (true) return true;
-    //line beneath filters for null rows, suppress right now for transparency
-    return "asian_d,black_d,hispanic_d,multi_d,li_d".split(",").some((k) => row[k]);
+  $scope.district = "wa";
+  $scope.districts = all;
+  $scope.baseline = "white";
+  $scope.selected = total;
+  $scope.demographics = demographics;
+  $scope.exclusive = demographics.filter(d => !d.exclude);
+
+  //update selected from the district dropdown
+  $scope.$watch(function() {
+    var district = $scope.selected = byCode[$scope.district];
+    var base = $scope.baseline;
+    $scope.baseLabel = labels[base];
+    $scope.relativeRates = $scope.exclusive.filter(d => d.data != base);
+
+    var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
+    var average = $scope.relativeRates.reduce(function(total, demo) {
+      return total + district[`${demo.data}_d`] / district[`${demo.data}_pop`];
+    }, 0) / (demographics.length - 1);
+    $scope.selectedIsHigher = baselineRate > average;
   });
 
-  all.forEach(function(item) {
-    "asian,black,hispanic,multi,li,white".split(",").forEach(function(demo) {
-      item[`${demo}_d`] = (item[`${demo}_d`] * 1) || false;
-      item[`${demo}_pop`] = (item[`${demo}_pop`] * 1) || 0;
-      var rate = item[`${demo}_d`] / item[`${demo}_pop`];
-      item[`${demo}_rate`] = (rate * 100) || false;
-    });
-    item.d_rate = item.disciplined / item.population;
-  });
-
-  $scope.search = "";
-  $scope.mode = "numbers";
-  $scope.comparison = "white";
-  $scope.data = all;
-
-  $scope.getRate = function(row, column) {
-    var value = row[`${column}_rate`];
-    if (!value) return "";
-    return value;
+  $scope.getRelative = function(demo) {
+    var base = $scope.baseline;
+    var district = $scope.selected;
+    var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
+    var demoRate = district[`${demo}_d`] / district[`${demo}_pop`];
+    return demoRate / baselineRate;
   };
 
-  $scope.getDiscipline = function(row, column) {
-    var value = row[`${column}_d`];
-    if (!value) return "";
-    return value;
+  $scope.getRate = function(demo) {
+    return $scope.selected[`${demo}_d`] / $scope.selected[`${demo}_pop`];
   };
 
-  $scope.getRelative = function(item, demo) {
-    var rate = item[`${demo}_rate`];
-    var compared = item[`${$scope.comparison}_rate`];
-    if (!rate || !compared) return "";
-    var ratio = rate / compared;
-    return ratio.toFixed(1);
-  };
-
-}]);
-
-app.directive("debounceModel", function() {
-  var debounce = function(f, delay) {
-    var timeout = null;
-    return function() {
-      if (timeout) return;
-      setTimeout(function() {
-        timeout = null;
-        f();
-      }, delay || 200);
-    };
+  $scope.getArea = function(demo) {
+    var rate = $scope.getRelative(demo);
+    var d = Math.sqrt(rate / Math.PI);
+    return d;
   }
 
-  return {
-    restrict: "A",
-    scope: {
-      "model": "=debounceModel"
-    },
-    link: function(scope, element, attrs) {
-      scope.$watch("model", function(now) {
-        if (now == current) return;
-        element.val(now);
-      });
+};
 
-      scope.model = element.val();
-      var current = scope.model;
+controller.$inject = ["$scope", "$filter"];
+app.controller("discipline-controller", controller);
 
-      element.on("keyup", debounce(function() {
-        current = scope.model = element.val();
-        scope.$apply();
-      }));
-    }
-  }
-})
