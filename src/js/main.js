@@ -39,9 +39,14 @@ demographics.forEach(d => {
 
 all.forEach(function(row) {
   byCode[row.code] = row;
-  for (var key in row) {
-    if (typeof total[key] == "number") total[key] += row[key] * 1;
-  }
+  total.population += row.population;
+  total.disciplined += row.disciplined;
+  demographics.forEach(d => {
+    if (row[`${d.data}_d`] != "N/A") {
+      total[`${d.data}_d`] += row[`${d.data}_d`];
+      total[`${d.data}_pop`] += row[`${d.data}_pop`];
+    }
+  });
 });
 byCode.wa = total;
 
@@ -61,8 +66,8 @@ var controller = function($scope, $filter) {
     var district = $scope.selected = byCode[$scope.district];
     var base = $scope.baseline;
     $scope.baseLabel = labels[base];
-    $scope.relativeRates = $scope.exclusive.filter(d => d.data != base);
-    $scope.exclusive = demographics.filter(d => !d.exclude && district[`${d.data}_d`]);
+    $scope.relativeRates = $scope.exclusive.filter(d => d.data != base && district[`${d.data}_d`] && district[`${d.data}_d`] !== "N/A");
+    $scope.exclusive = demographics.filter(d => !d.exclude);
 
     var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
     var count = $scope.relativeRates.reduce(function(total, demo) {
@@ -75,13 +80,16 @@ var controller = function($scope, $filter) {
   $scope.getRelative = function(demo) {
     var base = $scope.baseline;
     var district = $scope.selected;
+    if (district[`${demo}_d`] == "N/A") return null;
     var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
     var demoRate = district[`${demo}_d`] / district[`${demo}_pop`];
     return demoRate / baselineRate;
   };
 
   $scope.getRate = function(demo) {
-    return $scope.selected[`${demo}_d`] / $scope.selected[`${demo}_pop`];
+    var district = $scope.selected;
+    if (district[`${demo}_d`] == "N/A") return null;
+    return district[`${demo}_d`] / district[`${demo}_pop`];
   };
 
   $scope.getArea = function(demo) {
@@ -90,16 +98,22 @@ var controller = function($scope, $filter) {
     return d;
   };
 
-  $scope.tableFilter = "white";
-
-  $scope.$watch("tableFilter", function() {
-    $scope.tableData = all.sort(function(a, b) {
-      return b[`${$scope.tableFilter}_rate`] - a[`${$scope.tableFilter}_rate`];
-    });
-  });
-
 };
 
 controller.$inject = ["$scope", "$filter"];
 app.controller("discipline-controller", controller);
+
+var tableController = function($scope) {
+  $scope.tableFilter = "white";
+  $scope.demographics = demographics;
+
+  $scope.$watch("tableFilter", function() {
+    var filter = $scope.tableFilter;
+    $scope.tableData = all.filter(d => typeof d[`${filter}_rate`] == "number").sort(function(a, b) {
+      return b[`${filter}_rate`] - a[`${filter}_rate`];
+    });
+  });
+};
+tableController.inject = ["$scope"];
+app.controller("table-controller", tableController);
 

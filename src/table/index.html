@@ -1,0 +1,93 @@
+<%
+csv.discipline.sort(function(a, b) {
+  if (a.district < b.district) return -1;
+  if (b.district < a.district) return 1;
+  return 0;
+});
+csv.discipline.forEach(function(district) {
+  district.district = district.district.trim().replace(/\(.*\)$/);
+  district.asian_pop += district.api_pop;
+  district.asian_d += district.api_d;
+  ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {
+    var discipline = district[d + "_d"];
+    if (discipline === "") {
+      district[d + "_d"] = "N/A";
+      district[d + "_rate"] = "N/A";
+    } else {
+      district[d + "_d"] *= 1;
+      district[d + "_pop"] *= 1;
+      district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"];
+    }
+  });
+});
+grunt.data.counter = 0;
+%><!doctype html>
+<html>
+  <head>
+    <title><%= json.project.title %></title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="../style.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <%= t.include("partials/_adHead.html") %>
+  </head>
+  <body ng-app="discipline-app">
+    <style>
+[ng-cloak] { display: none }
+    </style>
+
+    <responsive-child>
+      <main class="interactive">
+        <section class="sor-table" ng-controller="table-controller" ng-cloak>
+
+          <h2>Discipline rates by district</h2>
+          
+          <div class="table-note">
+            View the top 10 districts by discipline rate for: 
+            <select ng-model="tableFilter" class="regular">
+              <option ng-repeat="d in demographics" value="{{d.data}}">{{d.label}} students</option>
+            </select>
+          </div>
+
+          <table class="top-table">
+            <thead>
+              <tr>
+                <th class="rank">
+                <th class="district">District
+                <th class="county">County
+                <th class="rate numeric">Rate
+                <th class="pop numeric">Students
+                <th class="disciplined numeric">Disciplined
+            <tbody>
+              <tr ng-repeat="row in tableData | limitTo:10">
+                <td class="rank">{{$index + 1}}
+                <td class="district">{{row.district}}
+                <td class="county">{{row.county}}
+                <td class="rate numeric">{{row[tableFilter + "_rate"] * 100 | number:1}}%
+                <td class="pop numeric">{{row[tableFilter + "_pop"] | number}}
+                <td class="disciplined numeric">{{row[tableFilter + "_d"] | number}}
+          </table>
+
+          <div class="source">
+            Source: Washington state Office of Superintendent of Public Instruction. Data includes only districts with at least 500 students, and ethnic groups with at least 20 students enrolled and 6 students suspended or expelled. Native American students were not shown because their numbers are so small. Asian student data also includes Pacific Islanders.
+          </div>
+
+          <cite class="credit">
+            THOMAS WILBURN / THE SEATTLE TIMES
+          </cite>
+
+        </section>
+      </main>
+    </responsive-child>
+ 
+    <script>
+window.discipline = <%= JSON.stringify(csv.discipline) %>;
+    </script>
+
+    <script src="../app.js"></script>
+    <% if (json.project.production) { %>
+    <%= !json.project.embedded ? t.include("partials/_adFoot.html") : "" %>
+    <%= t.include("partials/_workHere.html") %>
+    <% } %>
+  </body>
+</html>

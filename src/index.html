@@ -5,15 +5,18 @@ csv.discipline.sort(function(a, b) {
   return 0;
 });
 csv.discipline.forEach(function(district) {
-  for (var key in district) {
-    if (district[key] == "") {
-      district[key] = 0;
-    }
-  }
   district.asian_pop += district.api_pop;
   district.asian_d += district.api_d;
   ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {
-    district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"] || 0;
+    var discipline = district[d + "_d"];
+    if (discipline === "") {
+      district[d + "_d"] = "N/A";
+      district[d + "_rate"] = "N/A";
+    } else {
+      district[d + "_d"] *= 1;
+      district[d + "_pop"] *= 1;
+      district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"];
+    }
   });
 });
 grunt.data.counter = 0;
@@ -36,6 +39,7 @@ grunt.data.counter = 0;
       <main class="interactive">
         <h2>Different rates for different races</h2>
         <section class="chatter">
+          Click the underlined terms to update this interactive.
         </section>
         <section class="reactive-doc" ng-controller="discipline-controller" ng-cloak>
           
@@ -54,8 +58,8 @@ grunt.data.counter = 0;
 
           <div class="compare-row">
             <div ng-repeat="demo in relativeRates" class="demographic">
-              <h3>{{demo.label}} students</h3>
-              <div class="relative-text" ng-if="getRelative(demo.data) > 0">
+              <h3>{{demo.label}}<br>students</h3>
+              <div class="relative-text" ng-if="getRelative(demo.data) >= 0">
                 Suspended or expelled
                 <ratio-chart ratio="getRelative(demo.data)"></ratio-chart>
                 <div class="relative-rate" ng-class="{ high: getRelative(demo.data) > 2 }">
@@ -63,7 +67,7 @@ grunt.data.counter = 0;
                 </div>
                 as much as {{baseLabel}} students
               </div>
-              <div class="no-data" ng-if="getRelative(demo.data) == 0">
+              <div class="no-data" ng-if="getRelative(demo.data) === null">
                 No data for this district
               </div>
             </div>
@@ -77,51 +81,28 @@ grunt.data.counter = 0;
           </div>
 
           <p>
-            There are <span class="mutates">{{selected.population | number}}</span> students in 
+            There were <span class="mutates">{{selected.population | number}}</span> students in 
               <type-select options="districts" model="district"></type-select>
-            schools in the 2013-2014 school year. Of those, <span class="mutates">{{selected.disciplined | number}}</span> were suspended or expelled (<span class="mutates">{{selected.disciplined / selected.population * 100 | number:1}}%</span>). Beyond the racial breakdown, special-needs students and those from low-income families, are suspended at rates that far surpass others.
+            schools in the 2013-2014 school year. Of those, <span class="mutates">{{selected.disciplined | number}}</span> were suspended or expelled (<span class="mutates">{{selected.disciplined / selected.population * 100 | number:1}}%</span>). Beyond the racial breakdown, special-needs students and those from low-income families are suspended at rates that far surpass others.
 
           <div class="compare-row">
             <div ng-repeat="demo in demographics" class="demographic">
               <h3>{{demo.label}}</h3>
-              <div class="rate-text">
+              <div class="rate-text" ng-if="getRate(demo.data) !== null">
                 <div class="rate">
                   {{getRate(demo.data) * 100 | number:1}}% <pie-chart percentage="getRate(demo.data)"></pie-chart>
                 </div>
                 <b>{{selected[demo.data + "_d"] | number}}</b> suspensions or expulsions, out of
                 <b>{{selected[demo.data + "_pop"] | number}}</b> {{demo.label}} students
               </div>
+              <div class="no-data" ng-if="getRate(demo.data) === null">
+                No data for this district.
+              </div>
             </div>
           </div>
 
-          <div class="table-note">
-            The table below shows the top districts by discipline rate for
-            <select ng-model="tableFilter">
-              <option ng-repeat="d in demographics" value="{{d.data}}">{{d.label}}</option>
-            </select> students.
-          </div>
-
-          <table class="top-table">
-            <thead>
-              <tr>
-                <th class="rank">
-                <th class="district">District
-                <th class="county">County
-                <th class="rate numeric">Rate
-                <th class="pop numeric">Students
-                <th class="disciplined numeric">Disciplined
-            <tbody>
-              <tr ng-repeat="row in tableData | limitTo:10">
-                <td class="rank">{{$index + 1}}
-                <td class="district">{{row.district}}
-                <td class="county">{{row.county}}
-                <td class="rate numeric">{{row[tableFilter + "_rate"] * 100 | number:1}}%
-                <td class="pop numeric">{{row[tableFilter + "_pop"]}}
-                <td class="disciplined numeric">{{row[tableFilter + "_d"]}}
-          </table>
-
           <div class="source">
-            Source: Washington state Office of Superintendent of Public Instruction. If a group has fewer than xx students, the data was not provided. Native American students were not shown because their numbers are so small. Asian student data also includes Pacific Islanders.
+            Source: Washington state Office of Superintendent of Public Instruction. Data includes only districts with at least 500 students, and ethnic groups with at least 20 students enrolled and 6 students suspended or expelled. Native American students were not shown because their numbers are so small. Asian student data also includes Pacific Islanders.
           </div>
 
           <cite class="credit">
