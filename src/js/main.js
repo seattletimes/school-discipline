@@ -10,7 +10,8 @@ require("./typeSelect");
 require("./ratioChart");
 require("./pie");
 
-var all = window.discipline;
+var all = window.discipline.filter(d => d.code != "wa");
+var total = window.discipline.filter(d => d.code == "wa").pop();
 
 var demographics = [
   { label: "White", alt: "white", data: "white" },
@@ -24,28 +25,12 @@ var demographics = [
 var labels = {};
 
 var byCode = {};
-var total = {
-  district: "Washington",
-  county: "statewide",
-  population: 0,
-  disciplined: 0,
-};
 demographics.forEach(d => {
   labels[d.data] = d.alt || d.label;
-  total[`${d.data}_pop`] = 0;
-  total[`${d.data}_d`] = 0;
 });
 
 all.forEach(function(row) {
   byCode[row.code] = row;
-  total.population += row.population;
-  total.disciplined += row.disciplined;
-  demographics.forEach(d => {
-    if (row[`${d.data}_d`] != "N/A") {
-      total[`${d.data}_d`] += row[`${d.data}_d`];
-      total[`${d.data}_pop`] += row[`${d.data}_pop`];
-    }
-  });
 });
 byCode.wa = total;
 
