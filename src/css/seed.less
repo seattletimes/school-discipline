@@ -122,12 +122,29 @@ select.pick-baseline {
   font-size: 13px;
   width: 100%;
 
+  th {
+    vertical-align: bottom;
+  }
+
+  td {
+    vertical-align: top;
+  }
+
   td, th {
     text-align: left;
-    vertical-align: bottom;
 
     &.numeric {
       text-align: right;
+    }
+  }
+
+  tr:nth-child(2n + 1) td {
+    background: #F8F8F8;
+  }
+
+  @media @mobile {
+    .total {
+      display: none;
     }
   }
 }

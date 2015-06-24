@@ -106,10 +106,13 @@ app.controller("discipline-controller", controller);
 var tableController = function($scope) {
   $scope.tableFilter = "white";
   $scope.demographics = demographics;
+  $scope.labels = labels;
+
+  var subset = all.filter(d => d.population > 3000);
 
   $scope.$watch("tableFilter", function() {
     var filter = $scope.tableFilter;
-    $scope.tableData = all.filter(d => typeof d[`${filter}_rate`] == "number").sort(function(a, b) {
+    $scope.tableData = subset.filter(d => typeof d[`${filter}_rate`] == "number").sort(function(a, b) {
       return b[`${filter}_rate`] - a[`${filter}_rate`];
     });
   });
