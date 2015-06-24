@@ -5,6 +5,7 @@ csv.discipline.sort(function(a, b) {
   return 0;
 });
 csv.discipline.forEach(function(district) {
+  district.district = district.district.trim().replace(/\(.*\)$/, "");
   district.asian_pop += district.api_pop;
   district.asian_d += district.api_d;
   ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {

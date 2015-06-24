@@ -26,18 +26,20 @@ app.directive("typeSelect", function() {
       var el = element[0];
       var input = el.querySelector("input");
       var cachedValue;
+      var setValue = true;
 
       input.addEventListener("focus", function() {
         cachedValue = input.value;
         input.value = "";
         element.addClass("show-completion");
         scope.filtered = [];
+        setValue = false;
         scope.$apply();
       });
       
       input.addEventListener("blur", function() {
         setTimeout(() => element.removeClass("show-completion"), 100);
-        if (!input.value) input.value = cachedValue;
+        if (!input.value || !setValue) input.value = cachedValue;
       });
       
       input.addEventListener("keyup", function(e) {
@@ -68,6 +70,7 @@ app.directive("typeSelect", function() {
       });
 
       scope.setValue = function(option) {
+        setValue = true;
         input.value = `${option.district} (${option.county})`;
         scope.model = option.code || "wa";
       }
