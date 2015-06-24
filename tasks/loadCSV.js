@@ -5,6 +5,7 @@ Will use cached data if it hasn't changed since the last run.
 
 */
 
+var async = require("async");
 var csv = require("csv");
 var path = require("path");
 
@@ -18,7 +19,7 @@ module.exports = function(grunt) {
 
     grunt.data.csv = {};
 
-    files.forEach(function(filename) {
+    async.each(files, function(filename, c) {
       var file = grunt.file.read(filename);
       //strip out the empty lines that Excel likes to leave in.
       file = file.replace(/\r/g, "").split("\n").filter(function(line) { return line.match(/[^,]/) }).join("\n");
@@ -45,10 +46,33 @@ module.exports = function(grunt) {
           .replace(/\W(\w)/g, function(_, letter) { return letter.toUpperCase() });
         console.log("Loaded onto grunt.data as", sanitized);
         grunt.data.csv[sanitized] = parsed;
+        c();
       });
       parser.write(file);
       parser.end();
+    }, function() {
+      grunt.data.csv.discipline.sort(function(a, b) {
+        if (a.district < b.district) return -1;
+        if (b.district < a.district) return 1;
+        return 0;
+      });
+      grunt.data.csv.discipline.forEach(function(district) {
+        district.district = district.district.trim().replace(/\(.*\)$/, "");
+        ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {
+          var discipline = district[d + "_d"];
+          if (discipline === "") {
+            district[d + "_d"] = "N/A";
+            district[d + "_rate"] = "N/A";
+          } else {
+            district[d + "_d"] *= 1;
+            district[d + "_pop"] *= 1;
+            district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"];
+          }
+        });
+      });      
     });
+    
+
 
   });
 

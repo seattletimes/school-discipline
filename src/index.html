@@ -1,25 +1,4 @@
-<%
-csv.discipline.sort(function(a, b) {
-  if (a.district < b.district) return -1;
-  if (b.district < a.district) return 1;
-  return 0;
-});
-csv.discipline.forEach(function(district) {
-  district.district = district.district.trim().replace(/\(.*\)$/, "");
-  ["white", "asian", "black", "hispanic", "multi", "se", "li"].forEach(function(d) {
-    var discipline = district[d + "_d"];
-    if (discipline === "") {
-      district[d + "_d"] = "N/A";
-      district[d + "_rate"] = "N/A";
-    } else {
-      district[d + "_d"] *= 1;
-      district[d + "_pop"] *= 1;
-      district[d + "_rate"] = district[d + "_d"] / district[d + "_pop"];
-    }
-  });
-});
-grunt.data.counter = 0;
-%><!doctype html>
+<!doctype html>
 <html>
   <head>
     <title><%= json.project.title %></title>
@@ -100,13 +79,7 @@ grunt.data.counter = 0;
             </div>
           </div>
 
-          <div class="source">
-            Source: Washington state Office of Superintendent of Public Instruction. Data includes only districts with at least 500 students, and ethnic groups with at least 20 students enrolled and 6 students suspended or expelled. Native American and Pacific Islander students are not shown because their numbers are so small.
-          </div>
-
-          <cite class="credit">
-            THOMAS WILBURN / THE SEATTLE TIMES
-          </cite>
+          <%= t.include("_source.html") %>
 
         </section>
       </main>
