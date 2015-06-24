@@ -5,7 +5,6 @@
 require("component-responsive-frame/child");
 
 require("angular");
-var $ = require("jquery");
 var app = require("./application");
 require("./typeSelect");
 require("./ratioChart");
@@ -66,8 +65,15 @@ var controller = function($scope, $filter) {
     var district = $scope.selected = byCode[$scope.district];
     var base = $scope.baseline;
     $scope.baseLabel = labels[base];
-    $scope.relativeRates = $scope.exclusive.filter(d => d.data != base && district[`${d.data}_d`] && district[`${d.data}_d`] !== "N/A");
-    $scope.exclusive = demographics.filter(d => !d.exclude);
+    var available = d => !d.exclude && district[`${d.data}_d`] && district[`${d.data}_d`] !== "N/A";
+    $scope.exclusive = demographics.filter(available);
+    $scope.relativeRates = $scope.exclusive.filter(d => d.data != base);
+    
+    var bases = $scope.exclusive.map(d => d.data);
+    
+    if (bases.indexOf($scope.baseline) < 0) {
+      $scope.baseline = bases.shift();
+    }
 
     var baselineRate = district[`${base}_d`] / district[`${base}_pop`];
     var count = $scope.relativeRates.reduce(function(total, demo) {
